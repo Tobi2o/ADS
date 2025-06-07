@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Dossier source contenant les fichiers
+SRC_DIR="lab04_raw_files/lab04_raw_files"
+
+# Dossier de sortie des thumbnails
+THUMB_DIR="$SRC_DIR/thumbs"
+mkdir -p "$THUMB_DIR"
+
+# Traitement des images (JPG, JPEG, PNG)
+for img in "$SRC_DIR"/*.{jpg,jpeg,png,JPG,JPEG,PNG}; do
+  [ -e "$img" ] || continue
+
+  filename=$(basename "$img")
+  name="${filename%.*}"
+  ext="${filename##*.}"
+  ext="${ext,,}"
+
+  # Nom du thumbnail
+  thumb="${THUMB_DIR}/${name}_thumb.${ext}"
+
+  # Éviter de refaire des thumbnails existants
+  if [[ "$filename" != *_thumb.* ]]; then
+    convert "$img" -geometry 300 "$thumb"
+    echo "Thumbnail créé : $thumb"
+  else
+    echo "Ignoré (déjà un thumbnail) : $filename"
+  fi
+done
+
+# Traitement des PDF (convertit la 1ère page en JPG)
+for pdf in "$SRC_DIR"/*.pdf; do
+  [ -e "$pdf" ] || continue
+
+  filename=$(basename "$pdf")
+  name="${filename%.*}"
+  thumb="${THUMB_DIR}/${name}.jpg"
+
+  # Éviter de refaire le thumbnail
+  if [ ! -f "$thumb" ]; then
+    convert -geometry 300 "${pdf}[0]" "$thumb"
+    echo "Thumbnail PDF créé : $thumb"
+  else
+    echo "Ignoré (déjà existant) : $thumb"
+  fi
+done

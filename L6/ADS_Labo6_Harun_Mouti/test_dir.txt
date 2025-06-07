@@ -1,0 +1,17 @@
+test_dir:
+total 12
+-rw-r--r-- 1 tobioo tobioo    0 May  7 00:35 bar
+-rw-rw-r-- 1 tobioo proj_a    0 May  7 00:53 baz
+drwxr-xr-x 2 tobioo tobioo 4096 May  7 00:35 dir1
+drwxr-xr-x 2 tobioo tobioo 4096 May  7 00:35 dir2
+drwxrwxr-x 2 tobioo proj_a 4096 May  7 00:53 dir3
+-rw-r--r-- 1 tobioo tobioo    0 May  7 00:35 foo
+
+test_dir/dir1:
+total 0
+
+test_dir/dir2:
+total 0
+
+test_dir/dir3:
+total 0

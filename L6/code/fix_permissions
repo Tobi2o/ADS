@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Vérification du nombre d'arguments
+if [ $# -ne 1 ]; then
+    echo "Erreur : vous devez fournir un répertoire à analyser."
+    echo "Utilisation : $0 <répertoire>"
+    exit 1
+fi
+
+DIR="$1"
+
+# Vérification que l'argument est bien un répertoire
+if [ ! -d "$DIR" ]; then
+    echo "Erreur : '$DIR' n'est pas un répertoire valide."
+    exit 1
+fi
+
+# Détection des fichiers et dossiers world-writable
+WW_LIST=$(find "$DIR" -perm -0002)
+
+if [ -z "$WW_LIST" ]; then
+    echo "Aucun fichier ou répertoire world-writable trouvé."
+else
+    echo "The following files/directories are world-writable:"
+    echo "$WW_LIST"
+
+    # Confirmation utilisateur
+    read -p "Do you want the permissions to be fixed (y/n)? " ANSWER
+    if [ "$ANSWER" = "y" ] || [ "$ANSWER" = "Y" ]; then
+        echo "$WW_LIST" | while read ITEM; do
+            chmod o-w "$ITEM"
+        done
+        echo "Permissions corrected."
+    else
+        echo "Aucune modification effectuée."
+    fi
+fi
+
+# Détection des fichiers et dossiers group-writable
+GROUP_WRITABLE=$(find "$DIR" -perm -0020)
+
+# Récupérer le groupe personnel (même nom que l'utilisateur)
+USER_GROUP=$(id -gn)
+
+# Filtrage : uniquement ceux dont le groupe ≠ groupe personnel
+GROUP_WRITABLE_FILTERED=""
+while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    FILE_GROUP=$(stat -c %G "$file")
+    if [ "$FILE_GROUP" != "$USER_GROUP" ]; then
+        GROUP_WRITABLE_FILTERED="${GROUP_WRITABLE_FILTERED}${file}"$'\n'
+    fi
+done <<< "$GROUP_WRITABLE"
+
+# Affichage du résultat
+if [ -n "$GROUP_WRITABLE_FILTERED" ]; then
+    echo "The following files/directories are writable for groups:"
+    echo "$GROUP_WRITABLE_FILTERED"
+fi

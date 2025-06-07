@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Répertoire de travail
+BASE_DIR="lab04_raw_files/lab04_raw_files"
+RENAMED_DIR="$BASE_DIR/renamed"
+THUMBS_DIR="$BASE_DIR/thumbs"
+OUTPUT="page.html"
+
+# Nettoyage du fichier de sortie
+rm -f "$OUTPUT"
+
+# Inclusion du début du template
+cat template_begin.html >> "$OUTPUT"
+
+# Génération des images (section "Découvrez-nous en images")
+for img in "$RENAMED_DIR"/*.{jpg,jpeg,png}; do
+  [ -e "$img" ] || continue
+  base=$(basename "$img")
+  name="${base%.*}"  # exemple : cours_2500_1667
+  ext="${base##*.}"
+  ext="${ext,,}"
+
+  # Reconstituer le nom de la vignette
+  thumb_name="${name%_*}_thumb.${ext}"
+
+  echo "    <div class=\"col-md-6 col-xs-12\">" >> "$OUTPUT"
+  echo "      <a href=\"$RENAMED_DIR/$base\"><img class=\"vignette\" src=\"$THUMBS_DIR/$thumb_name\" /></a>" >> "$OUTPUT"
+  echo "    </div>" >> "$OUTPUT"
+done
+
+# Fermeture de la section images + ouverture de la section brochures
+cat <<EOF >> "$OUTPUT"
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top: 40px;">
+      <div class="col-md-10 col-md-pull-3 col-md-offset-4 article__content">
+        <div>
+          <div><h2>Téléchargez nos brochures</h2></div>
+        </div>
+        <div class="row">
+EOF
+
+# Génération des PDF
+for pdf in "$BASE_DIR"/*.pdf; do
+  [ -e "$pdf" ] || continue
+  base=$(basename "$pdf")
+  name="${base%.*}"
+
+  thumb="$THUMBS_DIR/$name.jpg"
+  echo "    <div class=\"col-md-6 col-xs-12\">" >> "$OUTPUT"
+  echo "      <a href=\"$BASE_DIR/$base\"><img class=\"vignette\" src=\"$thumb\" /></a>" >> "$OUTPUT"
+  echo "    </div>" >> "$OUTPUT"
+done
+
+# Inclusion de la fin du template
+cat template_end.html >> "$OUTPUT"
+
+echo "Fichier $OUTPUT généré avec succès."

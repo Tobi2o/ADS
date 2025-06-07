@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Dossier contenant les images originales
+SRC_DIR="lab04_raw_files/lab04_raw_files"
+
+# Dossier de sortie (on le crée s'il n'existe pas)
+DST_DIR="$SRC_DIR/renamed"
+mkdir -p "$DST_DIR"
+
+# Boucle sur toutes les images JPG et PNG
+for img in "$SRC_DIR"/*.{jpg,jpeg,png,JPG,JPEG,PNG}; do
+  # Vérifie l'existence du fichier
+  [ -e "$img" ] || continue
+
+  # Nom de base sans le chemin
+  base=$(basename "$img")
+
+  # Nom sans extension
+  name="${base%.*}"
+
+  # Extension en minuscule
+  ext="${base##*.}"
+  ext="${ext,,}"  # convertit en minuscule
+
+  # Récupère les dimensions
+  dimensions=$(identify -format "%w_%h" "$img" 2>/dev/null)
+
+  # Construit le nom de fichier destination
+  newname="${name}_${dimensions}.${ext}"
+
+  # Évite les doublons ou réapplications
+  if [[ "$base" != *"_${dimensions}"* ]]; then
+    cp "$img" "$DST_DIR/$newname"
+    echo "Copié : $base → $newname"
+  else
+    echo "Ignoré (déjà renommé) : $base"
+  fi
+done
